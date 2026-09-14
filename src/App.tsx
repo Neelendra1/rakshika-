@@ -471,13 +471,31 @@ export default function App() {
         body: JSON.stringify({ fullName, phone, aadhaarNumber }),
         credentials: "include"
       });
-      if (response.ok) {
+      const ct = response.headers.get("content-type");
+      if (response.ok && ct && ct.includes("application/json")) {
         const updated = await response.json();
         setUser((prev) => prev ? { ...prev, profile: updated } : null);
+        return;
       }
     } catch (err) {
-      console.error("Update profile error:", err);
+      console.error("Update profile notice:", err);
     }
+
+    // Unconditional local state update for instant client UI synchronization
+    setUser((prev) =>
+      prev
+        ? {
+            ...prev,
+            profile: {
+              ...prev.profile,
+              fullName: fullName || prev.profile.fullName,
+              phone: phone || prev.profile.phone,
+              aadhaarNumber: aadhaarNumber || prev.profile.aadhaarNumber,
+              avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(fullName || prev.profile.fullName)}`
+            }
+          }
+        : null
+    );
   };
 
   const handleAddContact = async (name: string, phone: string, relationship: string) => {

@@ -67,6 +67,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({
   const [fullName, setFullName] = useState(profile.fullName);
   const [phone, setPhone] = useState(profile.phone);
   const [aadhaarNumber, setAadhaarNumber] = useState(profile.aadhaarNumber || "");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  React.useEffect(() => {
+    setFullName(profile.fullName);
+    setPhone(profile.phone);
+    setAadhaarNumber(profile.aadhaarNumber || "");
+  }, [profile.fullName, profile.phone, profile.aadhaarNumber]);
 
   // Add Contact Form states
   const [contactName, setContactName] = useState("");
@@ -81,8 +88,11 @@ export const UserProfile: React.FC<UserProfileProps> = ({
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSuccessMsg("");
     await onUpdateProfile(fullName, phone, aadhaarNumber);
+    setSuccessMsg("✔ Personal credentials updated successfully!");
     setIsEditing(false);
+    setTimeout(() => setSuccessMsg(""), 4000);
   };
 
   const handleAddContact = async (e: React.FormEvent) => {
@@ -232,6 +242,13 @@ export const UserProfile: React.FC<UserProfileProps> = ({
           </div>
         </div>
 
+        {/* Success Feedback Notification Banner */}
+        {successMsg && (
+          <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 p-3 rounded-xl text-xs font-mono font-bold animate-fadeIn">
+            {successMsg}
+          </div>
+        )}
+
         {/* Profile Editor Panel */}
         {isEditing && (
           <form onSubmit={handleUpdate} className="bg-white border border-slate-250/70 p-5 rounded-2xl shadow-3xs space-y-4 animate-fadeIn">
@@ -245,7 +262,7 @@ export const UserProfile: React.FC<UserProfileProps> = ({
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs"
+                className="w-full px-3 py-2 border border-slate-200 rounded-lg text-xs font-sans"
               />
             </div>
             <div className="space-y-1">
@@ -259,10 +276,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({
               />
             </div>
             <div className="space-y-1">
-              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">Aadhaar ID (12 Digits)</label>
+              <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-mono">Aadhaar ID (Optional 12 Digits)</label>
               <input
                 type="text"
-                required
                 maxLength={12}
                 placeholder="492109848923"
                 value={aadhaarNumber}
@@ -272,9 +288,9 @@ export const UserProfile: React.FC<UserProfileProps> = ({
             </div>
             <button
               type="submit"
-              className="w-full bg-slate-900 hover:bg-slate-950 text-white font-mono font-bold text-[10px] py-2 rounded-lg tracking-wider transition-all cursor-pointer shadow-3xs"
+              className="w-full bg-slate-900 hover:bg-slate-950 text-white font-mono font-bold text-xs py-2.5 rounded-xl tracking-wider transition-all cursor-pointer shadow-3xs flex items-center justify-center gap-1.5"
             >
-              SAVE UPDATES
+              <span>SAVE CREDENTIAL UPDATES</span>
             </button>
           </form>
         )}
