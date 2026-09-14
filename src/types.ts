@@ -78,3 +78,19 @@ export interface SystemNotification {
   type: "info" | "warning" | "sos" | "success";
   timestamp: string;
 }
+
+export type UserRole = "user" | "admin" | "bouncer";
+
+export interface UserState {
+  userId: string;
+  email: string;
+  role: UserRole;
+  profile: {
+    fullName: string;
+    phone: string;
+    avatarUrl: string;
+    kycVerified: boolean;
+    aadhaarNumber: string;
+  };
+}
+

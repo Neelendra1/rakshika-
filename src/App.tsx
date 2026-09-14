@@ -24,6 +24,7 @@ import { TrackingDashboard } from "./components/TrackingDashboard";
 import { UserProfile } from "./components/UserProfile";
 import { BouncerRegistrationModal } from "./components/BouncerRegistrationModal";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { GuardDashboard } from "./components/GuardDashboard";
 import { syncOfflineQueue } from "./utils/offlineQueue";
 import { requestNotificationPermission } from "./utils/notifications";
 
@@ -50,7 +51,8 @@ interface UserState {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"book" | "registry" | "track" | "admin" | "profile">("registry");
+  const [activeTab, setActiveTab] = useState<"book" | "registry" | "track" | "admin" | "profile" | "guard_duty">("registry");
+  const [userRole, setUserRole] = useState<"user" | "admin" | "bouncer">("user");
 
   // Server-synced global states
   const [bouncers, setBouncers] = useState<LadyBouncer[]>(INITIAL_BOUNCERS);
@@ -610,7 +612,7 @@ export default function App() {
             </div>
           </div>
 
-          {/* Web App Navigation Tabs */}
+          {/* Web App Navigation Tabs (Filtered strictly by User Role) */}
           <nav className="hidden md:flex items-center gap-1.5 bg-slate-100/90 p-1.5 rounded-xl border border-slate-200 shadow-inner">
             <button
               onClick={() => setActiveTab("registry")}
@@ -618,29 +620,50 @@ export default function App() {
             >
               Vetted Registry
             </button>
-            <button
-              onClick={() => setActiveTab("book")}
-              className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer ${activeTab === "book" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
-            >
-              Book Guard
-            </button>
-            {user && (
-              <button
-                onClick={() => setActiveTab("track")}
-                className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${activeTab === "track" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
-              >
-                <span>Live Monitor</span>
-                {activeBooking && (
-                  <span className={`w-2 h-2 rounded-full ${sosActive ? "bg-red-500 animate-ping" : "bg-emerald-400 animate-pulse"}`} />
+
+            {/* CUSTOMER USER ROLE TABS */}
+            {userRole === "user" && (
+              <>
+                <button
+                  onClick={() => setActiveTab("book")}
+                  className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer ${activeTab === "book" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
+                >
+                  Book Guard
+                </button>
+                {user && (
+                  <button
+                    onClick={() => setActiveTab("track")}
+                    className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${activeTab === "track" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
+                  >
+                    <span>Live Monitor</span>
+                    {activeBooking && (
+                      <span className={`w-2 h-2 rounded-full ${sosActive ? "bg-red-500 animate-ping" : "bg-emerald-400 animate-pulse"}`} />
+                    )}
+                  </button>
                 )}
+              </>
+            )}
+
+            {/* BOUNCER / GUARD ROLE TAB */}
+            {userRole === "bouncer" && (
+              <button
+                onClick={() => setActiveTab("guard_duty")}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer flex items-center gap-1.5 ${activeTab === "guard_duty" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
+              >
+                <span>🛡️ Guard Duty Console</span>
               </button>
             )}
-            <button
-              onClick={() => setActiveTab("admin")}
-              className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer ${activeTab === "admin" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
-            >
-              Admin Portal
-            </button>
+
+            {/* ADMIN ROLE ONLY TAB (HIDDEN FOR NORMAL CUSTOMER USERS) */}
+            {userRole === "admin" && (
+              <button
+                onClick={() => setActiveTab("admin")}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg font-mono transition-all duration-200 cursor-pointer ${activeTab === "admin" ? "bg-slate-900 text-white shadow-sm ring-1 ring-slate-900" : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/50"}`}
+              >
+                🔑 Police Clearance Admin
+              </button>
+            )}
+
             {user && (
               <button
                 onClick={() => setActiveTab("profile")}
@@ -651,8 +674,68 @@ export default function App() {
             )}
           </nav>
 
-          {/* Connection Status & User Auth quick state */}
-          <div className="flex items-center gap-3">
+          {/* Connection Status & Module Role Selector */}
+          <div className="flex items-center gap-2">
+            {/* Quick Module Role Switcher (User, Guard, Admin) */}
+            <div className="hidden lg:flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl font-mono text-[10px]">
+              <button
+                onClick={() => {
+                  setUserRole("user");
+                  if (activeTab === "admin" || activeTab === "guard_duty") setActiveTab("registry");
+                }}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "user" ? "bg-pink-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                👤 Customer
+              </button>
+
+              <button
+                onClick={() => {
+                  setUserRole("bouncer");
+                  setActiveTab("guard_duty");
+                  if (!user || user.role !== "bouncer") {
+                    setUser({
+                      userId: "bouncer-1",
+                      email: "gurpreet.kaur@rakshika.com",
+                      role: "bouncer",
+                      profile: {
+                        fullName: "Gurpreet Kaur (Guard Officer)",
+                        phone: "+91 9876500001",
+                        avatarUrl: INITIAL_BOUNCERS[0].avatar,
+                        kycVerified: true,
+                        aadhaarNumber: "POL-DEL-74291"
+                      }
+                    });
+                  }
+                }}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "bouncer" ? "bg-rose-700 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                🛡️ Guard
+              </button>
+
+              <button
+                onClick={() => {
+                  setUserRole("admin");
+                  setActiveTab("admin");
+                  if (!user || user.role !== "admin") {
+                    setUser({
+                      userId: "admin-1",
+                      email: "admin.police@rakshika.com",
+                      role: "admin",
+                      profile: {
+                        fullName: "Police Clearance Officer",
+                        phone: "+91 1120000000",
+                        avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Admin",
+                        kycVerified: true,
+                        aadhaarNumber: "GOVT-POL-0001"
+                      }
+                    });
+                  }
+                }}
+                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "admin" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+              >
+                🔑 Admin
+              </button>
+            </div>
             <button
               onClick={() => setShowBouncerModal(true)}
               className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-2xs flex items-center gap-1"
@@ -1227,11 +1310,25 @@ export default function App() {
                 )
               )}
 
-              {/* TAB 4: ADMIN VERIFICATION DASHBOARD */}
+              {/* TAB 4: ADMIN VERIFICATION DASHBOARD (ADMIN ONLY) */}
               {activeTab === "admin" && (
                 <AdminDashboard
                   backendUrl={BACKEND_URL}
                   onBouncerApproved={fetchBouncers}
+                />
+              )}
+
+              {/* TAB 5: BOUNCER / GUARD DUTY CONSOLE */}
+              {activeTab === "guard_duty" && (
+                <GuardDashboard
+                  bouncer={bouncers[0]}
+                  assignedBookings={bookingsHistory}
+                  onToggleStatus={(status) => {
+                    setBouncers((prev) =>
+                      prev.map((b) => (b.id === bouncers[0].id ? { ...b, status } : b))
+                    );
+                  }}
+                  onUpdateBookingStatus={handleUpdateBookingStatus}
                 />
               )}
 
