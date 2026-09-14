@@ -51,7 +51,7 @@ interface UserState {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<"book" | "registry" | "track" | "admin" | "profile" | "guard_duty">("registry");
+  const [activeTab, setActiveTab] = useState<"book" | "registry" | "track" | "admin" | "profile" | "guard_duty">("book");
   const [userRole, setUserRole] = useState<"user" | "admin" | "bouncer">("user");
 
   // Server-synced global states
@@ -721,25 +721,6 @@ export default function App() {
                 <span className="text-slate-900 font-bold truncate max-w-[140px]">
                   {user.profile.fullName} ({userRole === "admin" ? "Admin" : userRole === "bouncer" ? "Guard" : "Customer"})
                 </span>
-              </div>
-            ) : (
-              <button
-                onClick={() => setActiveTab("book")}
-                className="hidden lg:flex items-center gap-1.5 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 hover:from-slate-950 hover:to-blue-950 text-white px-4 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-sm border border-slate-800"
-              >
-                <LogIn className="w-3.5 h-3.5 text-pink-400" /> Sign In
-              </button>
-            )}
-            <button
-              onClick={() => setShowBouncerModal(true)}
-              className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-2xs flex items-center gap-1"
-            >
-              <span>🛡️ Apply as Guard</span>
-            </button>
-            {user ? (
-              <div className="hidden lg:flex items-center gap-2 bg-rose-50/60 border border-rose-200/80 px-3 py-1.5 rounded-full text-[11px] font-mono">
-                <UserIcon className="w-3.5 h-3.5 text-rose-600" />
-                <span className="text-slate-900 font-bold truncate max-w-[120px]">{user.profile.fullName}</span>
               </div>
             ) : (
               <button
