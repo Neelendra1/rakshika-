@@ -2,6 +2,7 @@ services:
   - type: web
     name: rakshika-app
     env: node
+    plan: free
     buildCommand: npm install && npx prisma db push && npm run build
     startCommand: npm run server
     envVars:
@@ -9,3 +10,4 @@ services:
         value: 3001
       - key: NODE_ENV
         value: production
+
