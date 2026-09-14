@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://rakshika_user:rakshika_pass@db:5432/rakshika_db?schema=public
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=production-secure-jwt-secret-key-9841
+      - ENCRYPTION_KEY=production-secure-aes-32-chars-long-key
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=rakshika_user
+      - POSTGRES_PASSWORD=rakshika_pass
+      - POSTGRES_DB=rakshika_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata:

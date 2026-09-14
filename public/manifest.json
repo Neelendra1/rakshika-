@@ -1,0 +1,18 @@
+{
+  "short_name": "Rakshika",
+  "name": "Rakshika - Female Escort & Transit Protection",
+  "description": "India's first on-demand physical security network and real-time transit telemetry app for female safety.",
+  "icons": [
+    {
+      "src": "/hero_banner.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#4f46e5",
+  "display": "standalone",
+  "orientation": "portrait"
+}

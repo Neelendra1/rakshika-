@@ -1,0 +1,114 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String             @id @default(uuid())
+  email        String             @unique
+  passwordHash String
+  createdAt    DateTime           @default(now())
+  profile      Profile?
+  contacts     EmergencyContact[]
+  addresses    Address[]
+  bookings     Booking[]
+}
+
+model Profile {
+  id                     String  @id @default(uuid())
+  userId                 String  @unique
+  user                   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName               String
+  phone                  String  @unique
+  avatarUrl              String
+  aadhaarNumberEncrypted String  @default("")
+  kycVerified            Boolean @default(false)
+}
+
+model EmergencyContact {
+  id           String @id @default(uuid())
+  userId       String
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String
+  relationship String
+}
+
+model Address {
+  id      String @id @default(uuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label   String // "Home", "Work", "University", etc.
+  details String
+  lat     Float  @default(28.6139)
+  lng     Float  @default(77.2090)
+}
+
+model Bouncer {
+  id                  String    @id
+  name                String
+  avatar              String
+  age                 Int
+  height              String
+  weight              String
+  experienceYears     Int
+  rating              Float
+  reviewsCount        Int
+  languages           String // JSON-serialized array of strings
+  specialties         String // JSON-serialized array of strings
+  policeVerified      Boolean
+  backgroundVerified  Boolean
+  idProofVerified     Boolean
+  verificationId      String
+  bodyCameraEquipped  Boolean
+  hourlyRate          Float
+  currentCity         String
+  status              String // "available", "on_assignment", "offline"
+  weaponsCertified    Boolean
+  bookings            Booking[]
+}
+
+model Booking {
+  id                  String   @id
+  userId              String
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bouncerId           String
+  bouncer             Bouncer  @relation(fields: [bouncerId], references: [id])
+  clientName          String
+  daughterName        String?
+  parentPhone         String?
+  parentName          String?
+  type                String   // "hourly_transit", "event_protection", "vip_escort"
+  date                String
+  timeSlot            String
+  hours               Int
+  pickupLocation      String
+  destinationLocation String
+  amountPaid          Float
+  status              String   // "pending", "confirmed", "en_route", "active", "completed", "cancelled"
+  securityPin         String
+  liveLat             Float    @default(28.6139)
+  liveLng             Float    @default(77.2090)
+  trackerProgress     Int      @default(0)
+  isExamMode          Boolean  @default(false)
+  travelMode          String?
+  ticketDetails       String?
+  arrivalPlatform     String?
+  examCenter          String?
+  isOfflineBluetooth  Boolean  @default(false)
+  bluetoothRSSI       Int?
+  createdAt           DateTime @default(now())
+}
+
+model SystemNotification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String   // "info", "warning", "sos", "success"
+  timestamp String
+  createdAt DateTime @default(now())
+}

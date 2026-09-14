@@ -1,0 +1,6 @@
+{
+  "name": "Rakshika",
+  "description": "A premium, high-fidelity security and safety app to book, track, and pay background-verified lady bouncers for personal safety, events, hourly transit protection, and SOS alerts.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
