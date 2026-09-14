@@ -83,7 +83,19 @@ export default function App() {
   const [customGooglePassword, setCustomGooglePassword] = useState("");
 
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
+  const [isOnline, setIsOnline] = useState<boolean>(typeof navigator !== "undefined" ? navigator.onLine : true);
   const socketRef = useRef<any>(null);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
 
   // Initialize Google Identity Services GIS SDK if script loaded
   useEffect(() => {
@@ -662,10 +674,27 @@ export default function App() {
             )}
 
             {/* Connection Status Indicator */}
-            <div className={`hidden sm:flex items-center gap-1.5 border px-3 py-1 rounded-full text-[10px] font-mono font-bold ${socketConnected ? "bg-emerald-50 text-emerald-800 border-emerald-200" : "bg-red-50 text-red-800 border-red-200"
-              }`}>
-              <span className={`w-2 h-2 rounded-full ${socketConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
-              <span>{socketConnected ? "TELEMETRY ACTIVE" : "OFFLINE"}</span>
+            <div className={`hidden sm:flex items-center gap-1.5 border px-3 py-1 rounded-full text-[10px] font-mono font-bold ${
+              socketConnected 
+                ? "bg-emerald-50 text-emerald-800 border-emerald-200" 
+                : isOnline 
+                  ? "bg-emerald-50/80 text-emerald-700 border-emerald-200/60" 
+                  : "bg-red-50 text-red-800 border-red-200"
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                socketConnected 
+                  ? "bg-emerald-500 animate-pulse" 
+                  : isOnline 
+                    ? "bg-emerald-400" 
+                    : "bg-red-500"
+              }`} />
+              <span>
+                {socketConnected 
+                  ? "TELEMETRY ACTIVE" 
+                  : isOnline 
+                    ? "ONLINE" 
+                    : "OFFLINE"}
+              </span>
             </div>
 
             {/* 24x7 Safety Emergency Hotline Badge */}
