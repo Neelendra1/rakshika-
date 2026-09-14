@@ -62,6 +62,7 @@ export default function App() {
 
   // Bouncer Registration Modal state
   const [showBouncerModal, setShowBouncerModal] = useState<boolean>(false);
+  const [showRolePromptModal, setShowRolePromptModal] = useState<boolean>(false);
 
   // User Authentication & Profile States
   const [user, setUser] = useState<UserState | null>(null);
@@ -307,8 +308,8 @@ export default function App() {
     setShowGoogleChooser(false);
 
     const targetEmail = email || "user.google@gmail.com";
-    const targetName = fullName || targetEmail.split("@")[0].replace(".", " ");
-    const avatarUrl = googleData?.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(targetName)}`;
+    const isAdmin = targetEmail.toLowerCase().includes("admin");
+    const assignedRole: UserRole = isAdmin ? "admin" : "user";
 
     try {
       const response = await fetch(`${BACKEND_URL}/api/auth/google`, {
@@ -326,9 +327,11 @@ export default function App() {
       const ct = response.headers.get("content-type");
       if (response.ok && ct && ct.includes("application/json")) {
         const data = await response.json();
+        const roleFromData = data.role || assignedRole;
         setUser({
           userId: data.userId,
           email: data.email,
+          role: roleFromData,
           profile: {
             fullName: data.fullName,
             phone: data.phone,
@@ -337,8 +340,14 @@ export default function App() {
             aadhaarNumber: ""
           }
         });
+
+        if (roleFromData === "admin") {
+          setUserRole("admin");
+          setActiveTab("admin");
+        } else {
+          setShowRolePromptModal(true);
+        }
         await checkSession();
-        setActiveTab("book");
         return;
       }
     } catch (err) {
@@ -349,6 +358,7 @@ export default function App() {
     setUser({
       userId: "usr-google-" + Date.now().toString(36),
       email: targetEmail,
+      role: assignedRole,
       profile: {
         fullName: targetName,
         phone: "+91 9876543210",
@@ -357,7 +367,13 @@ export default function App() {
         aadhaarNumber: "XXXX-XXXX-8921"
       }
     });
-    setActiveTab("book");
+
+    if (isAdmin) {
+      setUserRole("admin");
+      setActiveTab("admin");
+    } else {
+      setShowRolePromptModal(true);
+    }
   };
 
   // Auth Operations
@@ -368,6 +384,9 @@ export default function App() {
     const payload = authMode === "login"
       ? { email: authEmail, password: authPassword }
       : { email: authEmail, password: authPassword, fullName: authName, phone: authPhone };
+
+    const isAdmin = authEmail.toLowerCase().includes("admin");
+    const fallbackRole: UserRole = isAdmin ? "admin" : "user";
 
     try {
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
@@ -380,9 +399,11 @@ export default function App() {
       const ct = response.headers.get("content-type");
       if (response.ok && ct && ct.includes("application/json")) {
         const data = await response.json();
+        const detectedRole = data.role || fallbackRole;
         setUser({
           userId: data.userId,
           email: data.email,
+          role: detectedRole,
           profile: {
             fullName: data.fullName,
             phone: data.phone,
@@ -392,9 +413,13 @@ export default function App() {
           }
         });
 
-        // Load initial records
+        if (detectedRole === "admin") {
+          setUserRole("admin");
+          setActiveTab("admin");
+        } else {
+          setShowRolePromptModal(true);
+        }
         await checkSession();
-        setActiveTab("book");
         return;
       }
     } catch (err) {
@@ -405,6 +430,7 @@ export default function App() {
     setUser({
       userId: "usr-" + Date.now().toString(36),
       email: authEmail || "user@rakshika.com",
+      role: fallbackRole,
       profile: {
         fullName: authName || (authEmail ? authEmail.split("@")[0] : "Verified User"),
         phone: authPhone || "+91 9876543210",
@@ -413,7 +439,13 @@ export default function App() {
         aadhaarNumber: "XXXX-XXXX-4512"
       }
     });
-    setActiveTab("book");
+
+    if (isAdmin) {
+      setUserRole("admin");
+      setActiveTab("admin");
+    } else {
+      setShowRolePromptModal(true);
+    }
   };
 
   const handleLogout = async () => {
@@ -674,68 +706,30 @@ export default function App() {
             )}
           </nav>
 
-          {/* Connection Status & Module Role Selector */}
-          <div className="flex items-center gap-2">
-            {/* Quick Module Role Switcher (User, Guard, Admin) */}
-            <div className="hidden lg:flex items-center gap-1 bg-slate-100 border border-slate-200 p-1 rounded-xl font-mono text-[10px]">
-              <button
-                onClick={() => {
-                  setUserRole("user");
-                  if (activeTab === "admin" || activeTab === "guard_duty") setActiveTab("registry");
-                }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "user" ? "bg-pink-600 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                👤 Customer
-              </button>
+          {/* Clean Executive User Auth State Header */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowBouncerModal(true)}
+              className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-2xs flex items-center gap-1"
+            >
+              <span>🛡️ Apply as Guard</span>
+            </button>
 
+            {user ? (
+              <div className="hidden lg:flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-full text-[11px] font-mono">
+                <UserIcon className="w-3.5 h-3.5 text-rose-600" />
+                <span className="text-slate-900 font-bold truncate max-w-[140px]">
+                  {user.profile.fullName} ({userRole === "admin" ? "Admin" : userRole === "bouncer" ? "Guard" : "Customer"})
+                </span>
+              </div>
+            ) : (
               <button
-                onClick={() => {
-                  setUserRole("bouncer");
-                  setActiveTab("guard_duty");
-                  if (!user || user.role !== "bouncer") {
-                    setUser({
-                      userId: "bouncer-1",
-                      email: "gurpreet.kaur@rakshika.com",
-                      role: "bouncer",
-                      profile: {
-                        fullName: "Gurpreet Kaur (Guard Officer)",
-                        phone: "+91 9876500001",
-                        avatarUrl: INITIAL_BOUNCERS[0].avatar,
-                        kycVerified: true,
-                        aadhaarNumber: "POL-DEL-74291"
-                      }
-                    });
-                  }
-                }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "bouncer" ? "bg-rose-700 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
+                onClick={() => setActiveTab("book")}
+                className="hidden lg:flex items-center gap-1.5 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 hover:from-slate-950 hover:to-blue-950 text-white px-4 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-sm border border-slate-800"
               >
-                🛡️ Guard
+                <LogIn className="w-3.5 h-3.5 text-pink-400" /> Sign In
               </button>
-
-              <button
-                onClick={() => {
-                  setUserRole("admin");
-                  setActiveTab("admin");
-                  if (!user || user.role !== "admin") {
-                    setUser({
-                      userId: "admin-1",
-                      email: "admin.police@rakshika.com",
-                      role: "admin",
-                      profile: {
-                        fullName: "Police Clearance Officer",
-                        phone: "+91 1120000000",
-                        avatarUrl: "https://api.dicebear.com/7.x/initials/svg?seed=Admin",
-                        kycVerified: true,
-                        aadhaarNumber: "GOVT-POL-0001"
-                      }
-                    });
-                  }
-                }}
-                className={`px-2.5 py-1 rounded-lg font-bold transition-all cursor-pointer ${userRole === "admin" ? "bg-slate-900 text-white shadow-xs" : "text-slate-600 hover:text-slate-900"}`}
-              >
-                🔑 Admin
-              </button>
-            </div>
+            )}
             <button
               onClick={() => setShowBouncerModal(true)}
               className="bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 px-3 py-1.5 rounded-full text-xs font-mono font-bold cursor-pointer transition-all shadow-2xs flex items-center gap-1"
@@ -1353,6 +1347,112 @@ export default function App() {
 
         </div>
       </main>
+
+      {/* INTERACTIVE ROLE SELECTION PROMPT MODAL (USER VS BOUNCER) */}
+      {showRolePromptModal && (
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white text-slate-900 border border-slate-200 rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl space-y-6 text-left relative overflow-hidden">
+            
+            {/* Header badge */}
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="bg-slate-900 text-white p-3 rounded-2xl shadow-sm">
+                <Shield className="w-6 h-6 text-pink-400" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 font-mono uppercase tracking-wider">
+                  Welcome to Rakshika Security
+                </h3>
+                <p className="text-xs text-slate-500 font-sans mt-0.5">
+                  Select your profile category to customize your portal experience:
+                </p>
+              </div>
+            </div>
+
+            {/* 2 Big Choice Cards with Icons */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Option 1: Customer User */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUserRole("user");
+                  setShowRolePromptModal(false);
+                  setActiveTab("book");
+                  if (user) setUser({ ...user, role: "user" });
+                }}
+                className="group border-2 border-slate-200 hover:border-pink-500 bg-slate-50/50 hover:bg-pink-50/40 p-5 rounded-2xl transition-all duration-200 text-left flex flex-col justify-between cursor-pointer space-y-3 shadow-3xs hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-pink-100 border border-pink-200 flex items-center justify-center text-2xl shadow-2xs">
+                    👩‍💼
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-pink-100 text-pink-800 px-2 py-0.5 rounded-full uppercase">
+                    CUSTOMER
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 font-sans group-hover:text-pink-700">
+                    I Need Security / Escorts
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-sans mt-1">
+                    Book police-verified female bouncers for personal safety, exam travel, & events.
+                  </p>
+                </div>
+
+                <div className="text-xs font-mono font-bold text-pink-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-1">
+                  <span>Continue as Customer</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </button>
+
+              {/* Option 2: Lady Bouncer / Guard */}
+              <button
+                type="button"
+                onClick={() => {
+                  setUserRole("bouncer");
+                  setShowRolePromptModal(false);
+                  setActiveTab("guard_duty");
+                  if (user) {
+                    setUser({
+                      ...user,
+                      role: "bouncer",
+                      profile: {
+                        ...user.profile,
+                        fullName: user.profile.fullName.includes("Officer") ? user.profile.fullName : `${user.profile.fullName} (Guard)`
+                      }
+                    });
+                  }
+                }}
+                className="group border-2 border-slate-200 hover:border-blue-600 bg-slate-50/50 hover:bg-blue-50/40 p-5 rounded-2xl transition-all duration-200 text-left flex flex-col justify-between cursor-pointer space-y-3 shadow-3xs hover:shadow-md"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-100 border border-blue-200 flex items-center justify-center text-2xl shadow-2xs">
+                    🛡️
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">
+                    GUARD FORCE
+                  </span>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-bold text-slate-900 font-sans group-hover:text-blue-700">
+                    I am a Lady Bouncer / Guard
+                  </h4>
+                  <p className="text-[11px] text-slate-500 leading-relaxed font-sans mt-1">
+                    Provide physical protection, manage duty shifts, and receive protection assignments.
+                  </p>
+                </div>
+
+                <div className="text-xs font-mono font-bold text-blue-600 flex items-center gap-1 group-hover:translate-x-1 transition-transform pt-1">
+                  <span>Access Guard Duty Console</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* BOUNCER ONBOARDING REGISTRATION MODAL OVERLAY */}
       <BouncerRegistrationModal
