@@ -98,7 +98,7 @@ export const BouncerRegistrationModal: React.FC<BouncerRegistrationModalProps> =
           </div>
           <div>
             <h3 className="text-sm font-bold text-slate-900 font-mono uppercase tracking-wider">
-              Lady Security Escort Registration Application
+              Lady Security Guard Registration Application
             </h3>
             <span className="text-[10px] text-slate-500 font-mono block">
               Police Clearance Vetting & Background Identity Check Portal

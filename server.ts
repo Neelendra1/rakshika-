@@ -526,7 +526,7 @@ app.post("/api/bouncers/register", async (req, res) => {
         rating: 5.0,
         reviewsCount: 0,
         languages: JSON.stringify(languages || ["Hindi", "English"]),
-        specialties: JSON.stringify(specialties || ["Tactical Defense", "Executive Escort"]),
+        specialties: JSON.stringify(specialties || ["Tactical Defense", "Executive Protection"]),
         policeVerified: false,
         backgroundVerified: false,
         idProofVerified: true,
@@ -783,7 +783,7 @@ app.get("/api/bookings/active", authenticateToken, async (req: AuthenticatedRequ
     res.json(active);
   } catch (err) {
     console.error("Fetch active booking error:", err);
-    res.status(500).json({ error: "Failed to retrieve active escort details." });
+    res.status(500).json({ error: "Failed to retrieve active guard details." });
   }
 });
 
@@ -897,7 +897,7 @@ app.put("/api/bookings/:id/status", authenticateToken, async (req: Authenticated
     const booking = await prisma.booking.findFirst({
       where: { id: req.params.id, userId: req.user!.userId }
     });
-    if (!booking) return res.status(404).json({ error: "Escort booking record not found." });
+    if (!booking) return res.status(404).json({ error: "Guard booking record not found." });
 
     const bouncerIds = String(booking.bouncerId).split(",").map((s: string) => s.trim());
     const guard = await prisma.bouncer.findUnique({ where: { id: bouncerIds[0] } });
@@ -931,10 +931,10 @@ app.put("/api/bookings/:id/status", authenticateToken, async (req: Authenticated
       message = `Safe transit started. Daughter verification PIN matched successfully. Body-cam broadcast active.`;
       notifType = "success";
     } else if (status === "completed") {
-      message = `Escort complete. User safely arrived at ${booking.destinationLocation}. Escrow payment released to guard.`;
+      message = `Guard duty complete. User safely arrived at ${booking.destinationLocation}. Escrow payment released to guard.`;
       notifType = "success";
     } else if (status === "cancelled") {
-      message = `Escort booking ${booking.id} cancelled. Security escrow refunded to client.`;
+      message = `Guard booking ${booking.id} cancelled. Security escrow refunded to client.`;
       notifType = "warning";
     }
 

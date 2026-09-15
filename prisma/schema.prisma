@@ -82,7 +82,7 @@ model Booking {
   daughterName        String?
   parentPhone         String?
   parentName          String?
-  type                String   // "hourly_transit", "event_protection", "vip_escort"
+  type                String   // "hourly_transit", "event_protection", "vip_protection"
   date                String
   timeSlot            String
   hours               Int

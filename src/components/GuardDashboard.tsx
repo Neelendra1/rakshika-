@@ -151,7 +151,7 @@ export const GuardDashboard: React.FC<GuardDashboardProps> = ({
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-emerald-500 animate-pulse" />
               <h3 className="text-sm font-bold font-mono text-slate-900 uppercase tracking-wider">
-                ASSIGNED ESCORT DUTY: #{activeBooking.id}
+                ASSIGNED GUARD DUTY: #{activeBooking.id}
               </h3>
             </div>
             <span className="text-xs font-mono font-bold bg-rose-50 text-rose-800 border border-rose-200 px-3 py-1 rounded-full uppercase">

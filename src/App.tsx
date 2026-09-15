@@ -1242,7 +1242,7 @@ export default function App() {
                           <span className="font-bold text-slate-900 font-sans">Dr. Ritu Saxena</span>
                           <span className="text-amber-500 font-bold">★★★★★</span>
                         </div>
-                        <span className="text-[10px] text-slate-400 font-mono block">Sector 62, Noida • Late Night Shift Escort</span>
+                        <span className="text-[10px] text-slate-400 font-mono block">Sector 62, Noida • Late Night Shift Guard</span>
                         <p className="text-[11px] text-slate-600 leading-relaxed italic font-sans">
                           "As a hospital surgeon finishing late night emergency duties, Rakshika's verified lady bouncers are a lifesaver. The UPI escrow payment is seamless and safe."
                         </p>
@@ -1391,7 +1391,7 @@ export default function App() {
 
                 <div>
                   <h4 className="text-sm font-bold text-slate-900 font-sans group-hover:text-pink-700">
-                    I Need Security / Escorts
+                    I Need Security / Guards
                   </h4>
                   <p className="text-[11px] text-slate-500 leading-relaxed font-sans mt-1">
                     Book police-verified female bouncers for personal safety, exam travel, & events.

@@ -254,7 +254,7 @@ export const BookingWizard: React.FC<BookingWizardProps> = ({
       try {
         await queueOfflineAction("CREATE_BOOKING", bookingPayload);
         onBookingConfirmed(bookingPayload);
-        alert("📱 Network Offline: Your escort booking has been saved to your offline phone queue and will sync automatically when connection resumes!");
+        alert("📱 Network Offline: Your guard booking has been saved to your offline phone queue and will sync automatically when connection resumes!");
       } catch (err) {
         console.error("Offline queue error:", err);
         onBookingConfirmed(bookingPayload);
